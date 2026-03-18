@@ -15,7 +15,7 @@ namespace ECommerceAPI.Controllers
         {
             this._cartService = cartService;
         }
-        [HttpPost("addtocart")]
+        [HttpPost()]
         public IActionResult AddToCart(int customerId, int productId, int quantity)
         {
             bool added = _cartService.AddToCart(customerId, productId, quantity);
@@ -26,7 +26,7 @@ namespace ECommerceAPI.Controllers
             return BadRequest("Error Adding Product");
         }
 
-        [HttpGet("getcart")]
+        [HttpGet()]
         public IActionResult GetCart(int customerId)
         {
             List<CartItem> cartitem = _cartService.GetCart(customerId);
@@ -37,7 +37,7 @@ namespace ECommerceAPI.Controllers
             return BadRequest("No Items for Customer");
         }
 
-        [HttpDelete("deletecart")]
+        [HttpDelete()]
         public IActionResult RemoveFromCart(int cartItemId)
         {
             bool removed = _cartService.RemoveFromCart(cartItemId);
