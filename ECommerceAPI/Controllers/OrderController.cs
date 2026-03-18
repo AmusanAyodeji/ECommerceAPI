@@ -15,7 +15,7 @@ namespace ECommerceAPI.Controllers
         {
             this._orderService = orderService;
         }
-        [HttpGet("getcustomerorders")]
+        [HttpGet()]
         public IActionResult GetCustomerOrders(int id)
         {
             List<Order> orders = _orderService.GetCustomerOrders(id);
@@ -25,7 +25,7 @@ namespace ECommerceAPI.Controllers
                 return Ok(orders);
         }
 
-        [HttpPost("createorder")]
+        [HttpPost()]
         public IActionResult CreateOrder(int customerid)
         {
             bool order = _orderService.CreateOrder(customerid);
