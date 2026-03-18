@@ -16,7 +16,7 @@ namespace ECommerceAPI.Controllers
         {
             this._productService = productService;
         }
-        [HttpPost("add_product")]
+        [HttpPost()]
         public IActionResult AddProduct(string name, double price, int stock, string category)
         {
             Product? product = _productService.AddProduct(name, price, stock, category);
@@ -30,7 +30,7 @@ namespace ECommerceAPI.Controllers
             }
         }
 
-        [HttpDelete("remove_product")]
+        [HttpDelete()]
         public IActionResult RemoveProduct(int id)
         {
             bool removed = _productService.RemoveProduct(id);
@@ -44,14 +44,14 @@ namespace ECommerceAPI.Controllers
             }
         }
 
-        [HttpGet("products")]
+        [HttpGet()]
         public IActionResult GetAllProducts()
         {
             List<Product> products = _productService.GetAllProducts();
             return Ok(products);
         }
 
-        [HttpPatch("update_stock")]
+        [HttpPatch()]
         public IActionResult UpdateStock(int id, int stock)
         {
             bool updated = _productService.UpdateStock(id, stock);
