@@ -2,6 +2,7 @@
 using ECommerceAPI.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace ECommerceAPI.Controllers
 {
@@ -19,33 +20,21 @@ namespace ECommerceAPI.Controllers
         public IActionResult AddToCart(int customerId, int productId, int quantity)
         {
             bool added = _cartService.AddToCart(customerId, productId, quantity);
-            if (added == true)
-            {
-                return Ok("Product added successfully");
-            }
-            return BadRequest("Error Adding Product");
+            return Ok("Product added successfully");
         }
 
         [HttpGet()]
         public IActionResult GetCart(int customerId)
         {
             List<CartItem> cartitem = _cartService.GetCart(customerId);
-            if(cartitem.Count > 0)
-            {
-                return Ok(cartitem);
-            }
-            return BadRequest("No Items for Customer");
+            return Ok(cartitem);
         }
 
         [HttpDelete()]
         public IActionResult RemoveFromCart(int cartItemId)
         {
             bool removed = _cartService.RemoveFromCart(cartItemId);
-            if (removed == true)
-            {
-                return Ok("Product removed successfully");
-            }
-            return BadRequest("Error removing Product");
+            return Ok("Product removed successfully");
         }
     }
     

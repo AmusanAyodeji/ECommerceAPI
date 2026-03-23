@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using ECommerceAPI.Interfaces;
+﻿using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace ECommerceAPI.Controllers
 {
@@ -29,31 +30,16 @@ namespace ECommerceAPI.Controllers
             }
             else
             {
-                registered = false;
+                return BadRequest("Invalid Role");
             }
-
-            if(registered == true)
-            {
-                return Ok("Registration Successful");
-            }
-            else
-            {
-                return BadRequest("Registration Failed");
-            }
+            return Ok("Registration Successful");
         }
 
         [HttpPost("login")]
         public IActionResult Login(string username, string password)
         {
             User? user = _authService.Login(username, password);
-            if(user != null)
-            {
-                return Ok(user);
-            }
-            else
-            {
-                return Unauthorized("Username or Password Incorrect");
-            }
+            return Ok(user);
         }
     }
 }

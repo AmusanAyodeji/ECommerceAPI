@@ -5,6 +5,7 @@ using System.Text;
 using ECommerceAPI.Enums;
 using ECommerceAPI.Models;
 using ECommerceAPI.Interfaces;
+using Microsoft.Data.SqlClient;
 
 namespace ECommerceAPI.Services
 {
@@ -18,6 +19,10 @@ namespace ECommerceAPI.Services
         }
         public bool RegisterCustomer(string username, string password)
         {
+            if (username == null || password == null)
+            {
+                throw new ArgumentNullException("Invaid Username or Password");
+            }
             Customer customer = new Customer();
             customer.UserName = username;
             customer.Password = password;
@@ -25,7 +30,7 @@ namespace ECommerceAPI.Services
             User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
             if (db_user != null)
             {
-                return false;
+                throw new InvalidOperationException("Username taken");
             }
             else
             {
@@ -33,20 +38,23 @@ namespace ECommerceAPI.Services
                 db.SaveChanges();
                 return true;
             }
-
         }
 
         public bool RegisterAdmin(string username, string password)
         {
+            if (username == null || password == null)
+            {
+                throw new ArgumentNullException("Invaid Username or Password");
+            }
             Admin admin = new Admin();
             admin.UserName = username;
             admin.Password = password;
             admin.Role = Roles.Admin;
 
             User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
-            if(db_user != null)
+            if (db_user != null)
             {
-                return false;
+                throw new InvalidOperationException("Username taken");
             }
             else
             {
@@ -58,14 +66,11 @@ namespace ECommerceAPI.Services
         public User? Login(string username, string password)
         {
             User? db_user = db.Users.FirstOrDefault(u => u.UserName == username && u.Password == password);
-            if(db_user == null)
+            if (db_user == null)
             {
-                return null;
+                throw new UnauthorizedAccessException("Username or Password Incorrect");
             }
-            else
-            {
-                return db_user;
-            }
+            return db_user;
         } 
     }
 }

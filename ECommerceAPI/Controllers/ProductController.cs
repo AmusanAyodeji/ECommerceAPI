@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
+using Microsoft.Data.SqlClient;
 
 namespace ECommerceAPI.Controllers
 {
@@ -20,13 +21,13 @@ namespace ECommerceAPI.Controllers
         public IActionResult AddProduct(string name, double price, int stock, string category)
         {
             Product? product = _productService.AddProduct(name, price, stock, category);
-            if(product != null)
+            if (product != null)
             {
                 return Ok($"Product Successfully Added, Details: {product}");
             }
             else
             {
-                return BadRequest("Unable to Add Product");
+                return Conflict("Product already exists");
             }
         }
 
@@ -34,14 +35,14 @@ namespace ECommerceAPI.Controllers
         public IActionResult RemoveProduct(int id)
         {
             bool removed = _productService.RemoveProduct(id);
-            if(removed == true)
+            if (removed == true)
             {
-                return Ok("Product deleted successfully");
+                return NoContent();
             }
             else
             {
-                return BadRequest("Product not found");
-            }
+                return NotFound($"Product with id:{id} not found");
+            }            
         }
 
         [HttpGet()]

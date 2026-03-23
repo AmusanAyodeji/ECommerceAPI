@@ -7,6 +7,8 @@ using System.Text;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using ECommerceAPI.Interfaces;
+using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ECommerceAPI.Services
 {
@@ -26,8 +28,19 @@ namespace ECommerceAPI.Services
 
         public bool CreateOrder(int customerId)
         {
+            User? db_customer = db.Users.FirstOrDefault(u => u.Id == customerId);
+            if(db_customer == null)
+            {
+                throw new InvalidOperationException($"Customer with id: {customerId} does not exist");
+            }
+
             List<CartItem> cartitems = db.CartItems.Where(u => u.CustomerId == customerId).ToList();
             double total_price = 0;
+
+            if(cartitems.Count == 0)
+            {
+                throw new InvalidOperationException("Cart is empty");
+            }
 
             foreach (CartItem item in cartitems)
             {
@@ -35,7 +48,7 @@ namespace ECommerceAPI.Services
                 Product product = db.Products.First(u => u.Id == productid);
                 if (product.Stock - item.Quantity < 0)
                 {
-                    return false;
+                    throw new InvalidOperationException($"Insufficient stock for product {product.Name}");
                 }
                 total_price += (product.Price * item.Quantity);
             }
@@ -47,7 +60,7 @@ namespace ECommerceAPI.Services
             db.SaveChanges();
 
             int orderid = order.Id;
-            
+
 
             foreach (CartItem item in cartitems)
             {
@@ -61,7 +74,7 @@ namespace ECommerceAPI.Services
                 product.Stock = product.Stock - item.Quantity;
                 orderitem.Price = product.Price;
                 db.OrderItems.Add(orderitem);
-                
+
             }
             db.CartItems.RemoveRange(db.CartItems.Where(u => u.CustomerId == customerId));
             db.SaveChanges();

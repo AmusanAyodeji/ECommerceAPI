@@ -1,7 +1,8 @@
 ﻿using ECommerceAPI.Interfaces;
-using Microsoft.AspNetCore.Http;
 using ECommerceAPI.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace ECommerceAPI.Controllers
 {
@@ -29,14 +30,7 @@ namespace ECommerceAPI.Controllers
         public IActionResult CreateOrder(int customerid)
         {
             bool order = _orderService.CreateOrder(customerid);
-            if(order == true)
-            {
-                return Created();
-            }
-            else
-            {
-                return BadRequest("An Error Occurred When Creating Order");
-            }
+            return Created();
         }
     }
 }
