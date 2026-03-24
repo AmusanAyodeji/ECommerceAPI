@@ -11,10 +11,12 @@ namespace ECommerceAPI.Controllers
     public class AuthController : ControllerBase
     {
         private IAuthService _authService;
+        private ITokenService _tokenService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ITokenService tokenService)
         {
             this._authService = authService;
+            this._tokenService = tokenService;
         }
         [HttpPost("register")]
         public IActionResult Register(string username, string password, string role)
@@ -39,7 +41,14 @@ namespace ECommerceAPI.Controllers
         public IActionResult Login(string username, string password)
         {
             User? user = _authService.Login(username, password);
-            return Ok(user);
+            string token = _tokenService.GenerateToken(user);
+
+            return Ok(new
+            {
+                Token = token,
+                Username = user.UserName,
+                Role = user.Role
+            });
         }
     }
 }
