@@ -1,5 +1,6 @@
 ﻿using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -8,6 +9,7 @@ namespace ECommerceAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private IAuthService _authService;

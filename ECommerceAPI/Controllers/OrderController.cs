@@ -1,5 +1,6 @@
 ﻿using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -17,6 +18,7 @@ namespace ECommerceAPI.Controllers
             this._orderService = orderService;
         }
         [HttpGet()]
+        [Authorize]
         public IActionResult GetCustomerOrders(int id)
         {
             List<Order> orders = _orderService.GetCustomerOrders(id);
@@ -27,6 +29,7 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpPost()]
+        [Authorize]
         public IActionResult CreateOrder(int customerid)
         {
             bool order = _orderService.CreateOrder(customerid);

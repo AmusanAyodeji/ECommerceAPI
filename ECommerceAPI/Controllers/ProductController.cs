@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ECommerceAPI.Controllers
 {
@@ -18,6 +19,7 @@ namespace ECommerceAPI.Controllers
             this._productService = productService;
         }
         [HttpPost()]
+        [Authorize(Roles = "Admin")]
         public IActionResult AddProduct(string name, double price, int stock, string category)
         {
             Product? product = _productService.AddProduct(name, price, stock, category);
@@ -32,6 +34,7 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpDelete()]
+        [Authorize(Roles = "Admin")]
         public IActionResult RemoveProduct(int id)
         {
             bool removed = _productService.RemoveProduct(id);
@@ -46,6 +49,7 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpGet()]
+        [Authorize]
         public IActionResult GetAllProducts()
         {
             List<Product> products = _productService.GetAllProducts();
@@ -53,6 +57,7 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpPatch()]
+        [Authorize(Roles = "Admin")]
         public IActionResult UpdateStock(int id, int stock)
         {
             bool updated = _productService.UpdateStock(id, stock);

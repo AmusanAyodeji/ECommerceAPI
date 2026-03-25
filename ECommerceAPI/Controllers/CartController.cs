@@ -3,6 +3,7 @@ using ECommerceAPI.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ECommerceAPI.Controllers
 {
@@ -24,6 +25,7 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpGet()]
+        [Authorize]
         public IActionResult GetCart(int customerId)
         {
             List<CartItem> cartitem = _cartService.GetCart(customerId);
@@ -31,6 +33,7 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpDelete()]
+        [Authorize]
         public IActionResult RemoveFromCart(int cartItemId)
         {
             bool removed = _cartService.RemoveFromCart(cartItemId);
