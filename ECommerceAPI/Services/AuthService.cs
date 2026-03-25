@@ -6,16 +6,19 @@ using ECommerceAPI.Enums;
 using ECommerceAPI.Models;
 using ECommerceAPI.Interfaces;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Identity;
 
 namespace ECommerceAPI.Services
 {
     public class AuthService:IAuthService
     {
         private AppDbContext db;
+        private readonly IPasswordHasher<User> _hasher;
 
-        public AuthService(AppDbContext db)
+        public AuthService(AppDbContext db, IPasswordHasher<User> hasher)
         {
             this.db = db;
+            this._hasher = hasher;
         }
         public bool RegisterCustomer(string username, string password)
         {
@@ -25,7 +28,9 @@ namespace ECommerceAPI.Services
             }
             Customer customer = new Customer();
             customer.UserName = username;
-            customer.Password = password;
+
+            customer.Password = _hasher.HashPassword(customer, password);
+
             customer.Role = Roles.Customer;
             User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
             if (db_user != null)
@@ -48,7 +53,9 @@ namespace ECommerceAPI.Services
             }
             Admin admin = new Admin();
             admin.UserName = username;
-            admin.Password = password;
+
+            admin.Password = _hasher.HashPassword(admin, password);
+
             admin.Role = Roles.Admin;
 
             User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
@@ -65,12 +72,23 @@ namespace ECommerceAPI.Services
         }
         public User? Login(string username, string password)
         {
-            User? db_user = db.Users.FirstOrDefault(u => u.UserName == username && u.Password == password);
+            
+            User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
             if (db_user == null)
             {
                 throw new UnauthorizedAccessException("Username or Password Incorrect");
             }
-            return db_user;
+
+            var result = _hasher.VerifyHashedPassword(db_user, db_user.Password, password);
+
+            if (result == PasswordVerificationResult.Success){
+                return db_user;
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("Username or Password Incorrect");
+            }
+            
         } 
     }
 }
