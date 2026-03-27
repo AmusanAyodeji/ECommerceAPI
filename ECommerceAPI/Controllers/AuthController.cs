@@ -3,6 +3,7 @@ using ECommerceAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.SqlClient;
 
 namespace ECommerceAPI.Controllers
@@ -10,6 +11,7 @@ namespace ECommerceAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public class AuthController : ControllerBase
     {
         private IAuthService _authService;

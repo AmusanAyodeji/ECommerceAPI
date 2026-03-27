@@ -9,6 +9,7 @@ namespace ECommerceAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private IOrderService _orderService;
@@ -18,7 +19,6 @@ namespace ECommerceAPI.Controllers
             this._orderService = orderService;
         }
         [HttpGet()]
-        [Authorize]
         public IActionResult GetCustomerOrders(int id)
         {
             List<Order> orders = _orderService.GetCustomerOrders(id);
@@ -29,7 +29,6 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpPost()]
-        [Authorize]
         public IActionResult CreateOrder(int customerid)
         {
             bool order = _orderService.CreateOrder(customerid);

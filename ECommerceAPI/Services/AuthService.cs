@@ -13,7 +13,7 @@ namespace ECommerceAPI.Services
     public class AuthService:IAuthService
     {
         private AppDbContext db;
-        private readonly IPasswordHasher<User> _hasher;
+        private IPasswordHasher<User> _hasher;
 
         public AuthService(AppDbContext db, IPasswordHasher<User> hasher)
         {

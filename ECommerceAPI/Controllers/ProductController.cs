@@ -4,6 +4,7 @@ using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ECommerceAPI.Controllers
 {

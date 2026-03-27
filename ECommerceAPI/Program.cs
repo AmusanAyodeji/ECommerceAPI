@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +40,42 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter
+        .Create<HttpContext, string>(context =>
+        {
+            string clientIp = context.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown";
+
+            return RateLimitPartition.GetFixedWindowLimiter(clientIp,
+                partition => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 100,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 5,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                });
+        });
+
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
+    });
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            StatusCode = 429,
+            Message = "Too many requests. Please try again later."
+        });
+    };
+});
+
 builder.Services.AddDbContext<AppDbContext>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICartService, CartService>();
@@ -66,7 +104,6 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Add these in the middleware section (after var app = builder.Build())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -74,6 +111,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

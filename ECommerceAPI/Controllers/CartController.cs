@@ -9,6 +9,7 @@ namespace ECommerceAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CartController : ControllerBase
     {
         private ICartService _cartService;
@@ -25,7 +26,6 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpGet()]
-        [Authorize]
         public IActionResult GetCart(int customerId)
         {
             List<CartItem> cartitem = _cartService.GetCart(customerId);
@@ -33,7 +33,6 @@ namespace ECommerceAPI.Controllers
         }
 
         [HttpDelete()]
-        [Authorize]
         public IActionResult RemoveFromCart(int cartItemId)
         {
             bool removed = _cartService.RemoveFromCart(cartItemId);
