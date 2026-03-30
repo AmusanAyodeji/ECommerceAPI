@@ -31,6 +31,12 @@ namespace ECommerceAPI.Services
             if (string.IsNullOrEmpty(category))
                 throw new ArgumentNullException("category", "Product category cannot be empty");
 
+            Product? db_product = db.Products.FirstOrDefault(u => u.Name == name);
+            if (db_product != null)
+            {
+                throw new InvalidOperationException("Product already exists");
+            }
+
             if (price <= 0)
             {
                 throw new ArgumentException("Product price must be greater than 0");
@@ -44,17 +50,10 @@ namespace ECommerceAPI.Services
             product.Price = price;
             product.Stock = stock;
             product.Category = category;
-            Product? db_product = db.Products.FirstOrDefault(u => u.Name == name);
-            if (db_product != null)
-            {
-                throw new InvalidOperationException("Product already exists");
-            }
-            else
-            {
-                db.Products.Add(product);
-                db.SaveChanges();
-                return product;
-            }
+
+            db.Products.Add(product);
+            db.SaveChanges();
+            return product;
         }
 
         public Product? AddProductV2(string name, double price, int stock, int categoryId)
@@ -64,21 +63,7 @@ namespace ECommerceAPI.Services
             if (categoryId == 0)
                 throw new ArgumentNullException("categoryId", "Product category id cannot be empty or 0");
 
-            if (price <= 0)
-            {
-                throw new ArgumentException("Product price must be greater than 0");
-            }
-            if (stock < 0)
-            {
-                throw new ArgumentException("Product stock cannot be less than 0");
-            }
-            Product product = new Product();
-            product.Name = name;
-            product.Price = price;
-            product.Stock = stock;
-            product.CategoryId = categoryId;
             Product? db_product = db.Products.FirstOrDefault(u => u.Name == name);
-
             Category? category = db.Categories.FirstOrDefault(c => c.Id == categoryId);
 
             if (category == null)
@@ -88,12 +73,25 @@ namespace ECommerceAPI.Services
             {
                 throw new InvalidOperationException("Product already exists");
             }
-            else
+
+            if (price <= 0)
             {
-                db.Products.Add(product);
-                db.SaveChanges();
-                return product;
+                throw new ArgumentException("Product price must be greater than 0");
             }
+            if (stock < 0)
+            {
+                throw new ArgumentException("Product stock cannot be less than 0");
+            }
+
+            Product product = new Product();
+            product.Name = name;
+            product.Price = price;
+            product.Stock = stock;
+            product.CategoryId = categoryId;
+
+            db.Products.Add(product);
+            db.SaveChanges();
+            return product;
         }
 
         public bool RemoveProduct(int id)

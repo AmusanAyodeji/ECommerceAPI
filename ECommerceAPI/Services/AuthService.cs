@@ -26,23 +26,22 @@ namespace ECommerceAPI.Services
             {
                 throw new ArgumentNullException("Invaid Username or Password");
             }
-            Customer customer = new Customer();
-            customer.UserName = username;
 
-            customer.Password = _hasher.HashPassword(customer, password);
-
-            customer.Role = Roles.Customer;
             User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
             if (db_user != null)
             {
                 throw new InvalidOperationException("Username taken");
             }
-            else
-            {
-                db.Users.Add(customer);
-                db.SaveChanges();
-                return true;
-            }
+
+            Customer customer = new Customer();
+
+            customer.UserName = username;
+            customer.Password = _hasher.HashPassword(customer, password);
+            customer.Role = Roles.Customer;
+
+            db.Users.Add(customer);
+            db.SaveChanges();
+            return true;
         }
 
         public bool RegisterAdmin(string username, string password)
@@ -51,6 +50,13 @@ namespace ECommerceAPI.Services
             {
                 throw new ArgumentNullException("Invaid Username or Password");
             }
+
+            User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
+
+            if (db_user != null)
+            {
+                throw new InvalidOperationException("Username taken");
+            }
             Admin admin = new Admin();
             admin.UserName = username;
 
@@ -58,21 +64,12 @@ namespace ECommerceAPI.Services
 
             admin.Role = Roles.Admin;
 
-            User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
-            if (db_user != null)
-            {
-                throw new InvalidOperationException("Username taken");
-            }
-            else
-            {
-                db.Users.Add(admin);
-                db.SaveChanges();
-                return true;
-            }
+            db.Users.Add(admin);
+            db.SaveChanges();
+            return true;
         }
         public User? Login(string username, string password)
-        {
-            
+        {            
             User? db_user = db.Users.FirstOrDefault(u => u.UserName == username);
             if (db_user == null)
             {
