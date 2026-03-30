@@ -57,6 +57,45 @@ namespace ECommerceAPI.Services
             }
         }
 
+        public Product? AddProductV2(string name, double price, int stock, int categoryId)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException("name", "Product name cannot be empty");
+            if (categoryId == 0)
+                throw new ArgumentNullException("categoryId", "Product category id cannot be empty or 0");
+
+            if (price <= 0)
+            {
+                throw new ArgumentException("Product price must be greater than 0");
+            }
+            if (stock < 0)
+            {
+                throw new ArgumentException("Product stock cannot be less than 0");
+            }
+            Product product = new Product();
+            product.Name = name;
+            product.Price = price;
+            product.Stock = stock;
+            product.CategoryId = categoryId;
+            Product? db_product = db.Products.FirstOrDefault(u => u.Name == name);
+
+            Category? category = db.Categories.FirstOrDefault(c => c.Id == categoryId);
+
+            if (category == null)
+                throw new KeyNotFoundException($"Category with id {categoryId} not found");
+
+            if (db_product != null)
+            {
+                throw new InvalidOperationException("Product already exists");
+            }
+            else
+            {
+                db.Products.Add(product);
+                db.SaveChanges();
+                return product;
+            }
+        }
+
         public bool RemoveProduct(int id)
         {
             Product? db_product = db.Products.FirstOrDefault(u => u.Id == id);

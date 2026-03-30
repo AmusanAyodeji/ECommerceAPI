@@ -8,7 +8,6 @@ using ECommerceAPI.Interfaces;
 public class TokenService: ITokenService
 {
     private readonly IConfiguration config;
-    private ITokenService _tokenservice;
 
     public TokenService(IConfiguration config)
     {

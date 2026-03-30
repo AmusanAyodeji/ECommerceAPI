@@ -37,12 +37,22 @@ namespace ECommerceAPI.Models
             }
         }
         public string Category { get; set; }
-          
+        public int? CategoryId { get; set; }
+
+        public Category? CategoryNav { get; set; }
         public List<CartItem> CartItems { get; set; }
         public List<OrderItem> OrderItems { get; set; }
         public override string ToString()
         {
-            string message = $"Name: {Name}, Price: ${Price}, Stock: {Stock}, Category: {Category}";
+            string message = "";
+            if (CategoryId == null)
+            {
+                message = $"Name: {Name}, Price: ${Price}, Stock: {Stock}, Category: {Category}";
+            }
+            else
+            {
+                message = $"Name: {Name}, Price: ${Price}, Stock: {Stock}, CategoryId: {CategoryId}";
+            }
             return message;
         }
     }

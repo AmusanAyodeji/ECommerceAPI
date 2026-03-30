@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
 using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
-using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Data.SqlClient;
 
-namespace ECommerceAPI.Controllers
+namespace ECommerceAPI.Controllers.V2
 {
-    [Route("api/[controller]")]
+    [ApiVersion("2.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -21,9 +23,9 @@ namespace ECommerceAPI.Controllers
         }
         [HttpPost()]
         [Authorize(Roles = "Admin")]
-        public IActionResult AddProduct(string name, double price, int stock, string category)
+        public IActionResult AddProduct(string name, double price, int stock, int categoryId)
         {
-            Product? product = _productService.AddProduct(name, price, stock, category);
+            Product? product = _productService.AddProductV2(name, price, stock, categoryId);
             if (product != null)
             {
                 return Ok($"Product Successfully Added, Details: {product}");
@@ -46,7 +48,7 @@ namespace ECommerceAPI.Controllers
             else
             {
                 return NotFound($"Product with id:{id} not found");
-            }            
+            }
         }
 
         [HttpGet()]
