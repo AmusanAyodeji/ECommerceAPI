@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using ECommerceAPI.Data;
+using ECommerceAPI.DTOs.Category;
 using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -26,9 +27,9 @@ namespace ECommerceAPI.Controllers.V2
         }
 
         [HttpPost]
-        public IActionResult AddCategory(string name)
+        public IActionResult AddCategory(CreateCategoryDTO categoryDTO)
         {
-            Category? category = _categoryservice.AddCategory(name);
+            CategoryResponseDTO? category = _categoryservice.AddCategory(categoryDTO);
             if (category != null)
             {
                 return Ok($"Category Successfully Added, Details: {category}");

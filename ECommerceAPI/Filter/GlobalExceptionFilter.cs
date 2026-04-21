@@ -1,52 +1,31 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ECommerceAPI.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
+using ECommerceAPI.Interfaces;
 
 namespace ECommerceAPI.Filters
 {
     public class GlobalExceptionFilter : IExceptionFilter
     {
+        private ILogger<GlobalExceptionFilter> _logger;
+        private IEnumerable<IExceptionsHandler> handlers;
+
+        public GlobalExceptionFilter(ILogger<GlobalExceptionFilter> _logger, IEnumerable<IExceptionsHandler> handlers)
+        {
+            this._logger = _logger;
+            this.handlers = handlers;
+        }
         public void OnException(ExceptionContext context)
         {
             var ex = context.Exception;
+            _logger.LogError($"Exception caught: {ex.Message}");
 
-            Console.WriteLine($"Exception caught: {ex.Message}");
-
-            if (ex is ArgumentNullException || ex is ArgumentException)
+            IExceptionsHandler? handler = handlers.FirstOrDefault(u => u.CanHandle(ex));
+            if(handler != null)
             {
-                context.Result = new BadRequestObjectResult(new
-                {
-                    StatusCode = 400,
-                    Message = ex.Message
-                });
-            }
-            else if (ex is InvalidOperationException)
-            {
-                context.Result = new ConflictObjectResult(new
-                {
-                    StatusCode = 409,
-                    Message = ex.Message
-                });
-            }
-            else if (ex is UnauthorizedAccessException)
-            {
-                context.Result = new UnauthorizedObjectResult(new
-                {
-                    StatusCode = 401,
-                    Message = ex.Message
-                })
-                    { StatusCode = 500 };
-            }
-            else if (ex is SqlException)
-            {
-                context.Result = new ObjectResult(new
-                {
-                    StatusCode = 500,
-                    Message = "A database error occurred"
-                })
-                { StatusCode = 500 };
-            }
-            else
+                context.Result = handler.Handle(ex);
+            }else
             {
                 context.Result = new ObjectResult(new
                 {
@@ -55,7 +34,6 @@ namespace ECommerceAPI.Filters
                 })
                 { StatusCode = 500 };
             }
-
             context.ExceptionHandled = true;
         }
     }

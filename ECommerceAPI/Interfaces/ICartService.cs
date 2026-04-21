@@ -1,11 +1,13 @@
-﻿using ECommerceAPI.Models;
+﻿using ECommerceAPI.DTOs.Cart;
+using ECommerceAPI.Models;
 
 namespace ECommerceAPI.Interfaces
 {
     public interface ICartService
     {
-        public bool AddToCart(int customerId, int productId, int quantity);
-        public List<CartItem> GetCart(int customerId);
+        public bool AddToCart(CreateCartItemDTO cartDTO);
+        public List<CartItemResponseDTO> GetCart(int customerId);
         public bool RemoveFromCart(int cartItemId);
+        public void ClearCart(int customerId);
     }
 }

@@ -1,10 +1,11 @@
-﻿using ECommerceAPI.Models;
+﻿using ECommerceAPI.DTOs.Orders;
+using ECommerceAPI.Models;
 
 namespace ECommerceAPI.Interfaces
 {
     public interface IOrderService
     {
-        public List<Order> GetCustomerOrders(int id);
+        public List<OrderResponseDTO> GetCustomerOrders(int id);
         public bool CreateOrder(int customerId);
     }
 }

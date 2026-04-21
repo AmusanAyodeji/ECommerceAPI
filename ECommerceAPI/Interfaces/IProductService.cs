@@ -1,14 +1,18 @@
-﻿using ECommerceAPI.Models;
+﻿using ECommerceAPI.DTOs.Products;
+using ECommerceAPI.Models;
 
 namespace ECommerceAPI.Interfaces
 {
     public interface IProductService
     {
-        public List<Product> GetAllProducts();
-        public Product? AddProduct(string name, double price, int stock, string category);
-        public Product? AddProductV2(string name, double price, int stock, int categoryId);
+        public List<ProductResponseDTO> GetAllProducts();
+        public ProductResponseDTO? AddProduct(CreateProductDTO productDTO);
+        public ProductResponseDTO? AddProductV2(CreateProductV2DTO productDTO);
 
         public bool RemoveProduct(int id);
-        public bool UpdateStock(int id, int stock);
+        public bool UpdateStock(UpdateStockDTO updateStock);
+        public Product GetById(int Id);
+        public void UpdateStockFromCart(CartItem item);
+        public double GetTotalPrice(List<CartItem> cartitems);
     }
 }

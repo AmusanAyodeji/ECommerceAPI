@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using ECommerceAPI.DTOs.Products;
 using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -23,9 +24,9 @@ namespace ECommerceAPI.Controllers.V1
         }
         [HttpPost()]
         [Authorize(Roles = "Admin")]
-        public IActionResult AddProduct(string name, double price, int stock, string category)
+        public IActionResult AddProduct(CreateProductDTO productDTO)
         {
-            Product? product = _productService.AddProduct(name, price, stock, category);
+            ProductResponseDTO? product = _productService.AddProduct(productDTO);
             if (product != null)
             {
                 return Ok($"Product Successfully Added, Details: {product}");
@@ -55,15 +56,15 @@ namespace ECommerceAPI.Controllers.V1
         [Authorize]
         public IActionResult GetAllProducts()
         {
-            List<Product> products = _productService.GetAllProducts();
+            List<ProductResponseDTO> products = _productService.GetAllProducts();
             return Ok(products);
         }
 
         [HttpPatch()]
         [Authorize(Roles = "Admin")]
-        public IActionResult UpdateStock(int id, int stock)
+        public IActionResult UpdateStock(UpdateStockDTO updateStock)
         {
-            bool updated = _productService.UpdateStock(id, stock);
+            bool updated = _productService.UpdateStock(updateStock);
             if (updated == true)
             {
                 return Ok("Product Stock Updated successfully");

@@ -1,11 +1,11 @@
 ﻿using Asp.Versioning;
+using ECommerceAPI.DTOs.Auth;
+using ECommerceAPI.DTOs.OTP;
 using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Data.SqlClient;
 
 namespace ECommerceAPI.Controllers.V1
 {
@@ -18,23 +18,26 @@ namespace ECommerceAPI.Controllers.V1
     {
         private IAuthService _authService;
         private ITokenService _tokenService;
+        private IEmailService _emailservice;
+        private IOTPService _otpservice;
 
-        public AuthController(IAuthService authService, ITokenService tokenService)
+        public AuthController(IAuthService authService, ITokenService tokenService, IEmailService _emailservice, IOTPService _otpservice)
         {
             this._authService = authService;
             this._tokenService = tokenService;
+            this._emailservice = _emailservice;
+            this._otpservice = _otpservice;
         }
         [HttpPost("register")]
-        public IActionResult Register(string username, string password, string role)
+        public IActionResult Register(RegisterUserDTO registerUserDTO)
         {
-            bool registered;
-            if (role.ToLower() == "admin")
+            if (registerUserDTO.role.ToLower() == "admin")
             {
-                registered = _authService.RegisterAdmin(username, password);
+                _authService.RegisterAdmin(registerUserDTO);
                 
-            }else if(role.ToLower() == "customer")
+            }else if(registerUserDTO.role.ToLower() == "customer")
             {
-                registered = _authService.RegisterCustomer(username, password);
+                _authService.RegisterCustomer(registerUserDTO);
             }
             else
             {
@@ -44,17 +47,51 @@ namespace ECommerceAPI.Controllers.V1
         }
 
         [HttpPost("login")]
-        public IActionResult Login(string username, string password)
+        public IActionResult Login(LoginUserDTO loginUserDTO)
         {
-            User? user = _authService.Login(username, password);
-            string token = _tokenService.GenerateToken(user);
+            TokenResponse? token = _authService.Login(loginUserDTO);
+            return Ok(token);
+        }
 
-            return Ok(new
+        [HttpPost("refresh")]
+        public IActionResult Refresh(int userId)
+        {
+            if (userId == 0)
+                throw new ArgumentNullException("User Id",
+                    "User Id cannot be empty");
+
+            TokenResponse tokens = _tokenService
+                .RefreshTokens(userId);
+
+            return Ok(tokens);
+        }
+
+        [HttpPost("sendotp")]
+        [EnableRateLimiting("otp")]
+        public IActionResult SendOTP(string email)
+        {
+            _emailservice.SendOtp(email, _otpservice.GenerateOTP(email));
+            return Ok("OTP Email sent successfully");
+        }
+
+        [HttpPost("verifyotp")]
+        [EnableRateLimiting("otp")]
+        public IActionResult VerifyOTP(VerifyOTPDTO verify)
+        {
+            if(_otpservice.VerifyOTP(verify))
             {
-                Token = token,
-                Username = user.UserName,
-                Role = user.Role
-            });
+                _authService.VerifyUser(verify.email);
+                return Ok("Email successfully verified");
+            }
+            return Unauthorized("Invalid OTP Code");
+        }
+
+        [HttpPost("resendotp")]
+        [EnableRateLimiting("email")]
+        public IActionResult ResendOTPEmail(string email)
+        {
+            _emailservice.ResendOTP(email);
+            return Ok("OTP Email resent successfully");
         }
     }
 }

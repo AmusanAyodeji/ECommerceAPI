@@ -36,7 +36,7 @@ namespace ECommerceAPI.Models
                 }
             }
         }
-        public string Category { get; set; }
+        public string? Category { get; set; }
         public int? CategoryId { get; set; }
 
         public Category? CategoryNav { get; set; }

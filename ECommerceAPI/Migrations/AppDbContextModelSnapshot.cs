@@ -156,11 +156,13 @@ namespace ECommerceAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Role")
+                    b.Property<int?>("Role")
                         .HasColumnType("int");
 
                     b.Property<string>("UserName")
@@ -170,6 +172,25 @@ namespace ECommerceAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ECommerceAPI.Models.Wallet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("amount")
+                        .HasColumnType("float");
+
+                    b.Property<int>("customerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("ECommerceAPI.Models.CartItem", b =>

@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using ECommerceAPI.DTOs.Cart;
 using ECommerceAPI.Interfaces;
 using ECommerceAPI.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -21,16 +22,16 @@ namespace ECommerceAPI.Controllers.V1
             this._cartService = cartService;
         }
         [HttpPost()]
-        public IActionResult AddToCart(int customerId, int productId, int quantity)
+        public IActionResult AddToCart(CreateCartItemDTO cartDTO)
         {
-            bool added = _cartService.AddToCart(customerId, productId, quantity);
+            bool added = _cartService.AddToCart(cartDTO);
             return Ok("Product added successfully");
         }
 
         [HttpGet()]
         public IActionResult GetCart(int customerId)
         {
-            List<CartItem> cartitem = _cartService.GetCart(customerId);
+            List<CartItemResponseDTO> cartitem = _cartService.GetCart(customerId);
             return Ok(cartitem);
         }
 

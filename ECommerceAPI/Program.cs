@@ -1,16 +1,25 @@
+using Asp.Versioning;
 using ECommerceAPI.Data;
 using ECommerceAPI.Filters;
+using ECommerceAPI.Handlers;
+using ECommerceAPI.Helper;
 using ECommerceAPI.Interfaces;
+using ECommerceAPI.Mapper;
+using ECommerceAPI.Middleware;
 using ECommerceAPI.Models;
 using ECommerceAPI.Services;
+using ECommerceAPI.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Threading.RateLimiting;
+using Serilog;
+using Serilog.Events;
+using StackExchange.Redis;
 using System.Text;
-using Asp.Versioning;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,18 +95,24 @@ builder.Services.AddRateLimiter(options =>
                 });
         });
 
-    options.AddPolicy("auth", context =>
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
     {
-        var username = context.Request.Form["username"].ToString();
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromHours(1);
+        limiterOptions.QueueLimit = 0;
+    });
 
-        return RateLimitPartition.GetFixedWindowLimiter(
-            username ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromHours(1),
-                QueueLimit = 0
-            });
+    options.AddFixedWindowLimiter("otp", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromHours(1);
+        limiterOptions.QueueLimit = 0;
+    });
+    options.AddFixedWindowLimiter("email", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 1;
+        limiterOptions.Window = TimeSpan.FromSeconds(30);
+        limiterOptions.QueueLimit = 0;
     });
 
     options.OnRejected = async (context, token) =>
@@ -111,14 +126,45 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+var options = new ConfigurationOptions
+{
+    EndPoints = { { builder.Configuration["RedisSettings:Host"], int.Parse(builder.Configuration["RedisSettings:Port"]) } },
+    Password = builder.Configuration["RedisSettings:Password"],
+    AbortOnConnectFail = false,
+    ConnectTimeout = 10000
+};
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<RedisSettings>(
+    builder.Configuration.GetSection("RedisSettings"));
+
 builder.Services.AddDbContext<AppDbContext>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IValidationHelper, ValidationHelper>();
+builder.Services.AddScoped<IExceptionsHandler, ArgumentExceptionHandler>();
+builder.Services.AddScoped<IExceptionsHandler, InvalidOperationExceptionHandler>();
+builder.Services.AddScoped<IExceptionsHandler, SqlExceptionHandler>();
+builder.Services.AddScoped<IExceptionsHandler, UnauthorizedAccessExceptionHandler>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IOTPService, OTPService>();
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
+{
+    RedisSettings settings = provider
+        .GetRequiredService<IOptions<RedisSettings>>().Value;
+
+    return ConnectionMultiplexer.Connect(options);
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -138,6 +184,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<MappingProfile>();
+});
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.File(
+        path: "Logs/log-.txt",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj} UserId={UserId} Username={Username} Role={Role}{NewLine}{Exception}",
+        retainedFileCountLimit: 30,
+        fileSizeLimitBytes: 10_000_000,
+        rollOnFileSizeLimit: true
+    )
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -155,6 +223,7 @@ app.UseHttpsRedirection();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+app.UseMiddleware<LoggingEnrichmentMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

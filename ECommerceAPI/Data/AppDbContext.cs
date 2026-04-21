@@ -15,6 +15,7 @@ namespace ECommerceAPI.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Wallet> Wallets { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             options.UseSqlServer("Server=localhost;Database=ECommerceDB;Trusted_Connection=True;TrustServerCertificate=True;");

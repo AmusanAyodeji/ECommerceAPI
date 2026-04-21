@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using ECommerceAPI.DTOs.Orders;
 
 namespace ECommerceAPI.Controllers.V1
 {
@@ -23,7 +24,7 @@ namespace ECommerceAPI.Controllers.V1
         [HttpGet()]
         public IActionResult GetCustomerOrders(int id)
         {
-            List<Order> orders = _orderService.GetCustomerOrders(id);
+            List<OrderResponseDTO> orders = _orderService.GetCustomerOrders(id);
             if (orders.Count == 0)
                 return NotFound("No orders found for this customer");
             else
@@ -34,7 +35,7 @@ namespace ECommerceAPI.Controllers.V1
         public IActionResult CreateOrder(int customerid)
         {
             bool order = _orderService.CreateOrder(customerid);
-            return Created();
+            return Ok("Order created successfully");
         }
     }
 }
